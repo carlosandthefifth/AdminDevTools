@@ -12,6 +12,7 @@
     "sfdcLoginUrl": "https://login.salesforce.com",
     "sourceApiVersion": "46.0",
     "packageAliases": {
-        "mmdebugger": "0Ho3i00000000BsCAI"
+        "mmdebugger": "0Ho3i00000000BsCAI",
+        "mmdebugger@0.1.0-2": "04t3i000002n9HpAAI"
     }
 }
