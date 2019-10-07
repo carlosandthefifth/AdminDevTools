@@ -3,7 +3,7 @@
         {
             "path": "force-app",
             "default": true,
-            "package": "Admin-Develop-Tools",
+            "package": "mmdebugger",
             "versionName": "ver 0.1",
             "versionNumber": "0.1.0.NEXT"
         }
@@ -12,7 +12,6 @@
     "sfdcLoginUrl": "https://login.salesforce.com",
     "sourceApiVersion": "46.0",
     "packageAliases": {
-        "Admin-Develop-Tools": "0Ho3i00000000BdCAI",
-        "Admin-Develop-Tools@0.1.0-1": "04t3i000002n9HBAAY"
+        "mmdebugger": "0Ho3i00000000BsCAI"
     }
 }
