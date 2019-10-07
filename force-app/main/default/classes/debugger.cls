@@ -100,6 +100,11 @@ public virtual class debugger {
         log('');
     }
 
+    public virtual void log(SObject anObject, boolean useLongArea){
+        String objString = JSON.serialize(anObject);
+        log(objString,true);
+    }
+
     public virtual void log(SObject anObject){
         String objString = JSON.serialize(anObject);
         log(objString);
@@ -168,7 +173,13 @@ public virtual class debugger {
 
     public virtual boolean writeLogs() {
         try {
+            if (lines.size() <= 0) {
+                debugger__c line = new debugger__c();
+                line.textArealog__c = 'nothing to log';
+                lines.add(line);
+            }
             insert lines;
+            lines.clear();
             if (throwExpeption) throw new codeCoverageException('code coverage exception');
             return true;
         } catch (Exception e) {
