@@ -1,18 +1,18 @@
 public virtual class debugger {
 
+    private string queryLogString = 'SELECT ID, name, textAreaLog__c, textAreaLongLog__c, dateLog__c, datetimeLog__c, timeLog__c FROM debugger__c';
+
     // Timestamp flag
     public static boolean       firstTime = true;
     public static boolean       runLogging = false;
     public static long          timeSpan;
-    public List<debugger__c>    lines;
-    
+    private debugger__c         line;
+    List<debugger__c>           lines = new List<debugger__c>();
 
     private static boolean overrideTesting       = false; // code coverage
     private static boolean throwExpeption        =false; // code coverage
     public class codeCoverageException extends Exception {}
 
-    private static boolean      loggingStarted = false;
-    private static boolean      stopLogging    = false;
     private static long         startTime      = 0;
     private static long         stopTime       = 0;
     private static long         timeStamp      = 0;
@@ -47,27 +47,7 @@ public virtual class debugger {
         throwExpeption = value;
     } 
 
-
-    public virtual void stopLogging() {
-        stopLogging = true;
-        log();
-    }
-
-
     public virtual void log(string log, boolean useLongArea, boolean includeDateTimeStamp, boolean onlyDateTimeStamp, boolean onlyTimeSpan) {
-        if (!loggingStarted) {
-            
-            loggingStarted = true;
-            if (lines == null)
-                lines = new List<debugger__c>();
-            else 
-                lines.clear();
-        } else if (stopLogging) {
-            insert lines;
-            loggingStarted = false;
-            runLogging    = false;
-            stopLogging   = false;
-        }
         try {
             if (throwExpeption) throw new codeCoverageException('code coverage exception');
             if ((isAvailable || test.isRunningTest()) && !overrideTesting) {
@@ -78,7 +58,6 @@ public virtual class debugger {
                     if ((includeDateTimeStamp || onlyDateTimeStamp) && !onlyTimeSpan) aLine.datetimeLog__c = getNow;
                     if (!onlyDateTimeStamp && !onlyTimeSpan) {
                         aLine.textAreaLongLog__c = log;
-                        lines.add(aLine);
                     }
                     if (onlyTimeSpan) aline.textAreaLog__c = 'timeSpan: ' + timespan;
                 } else {
@@ -86,13 +65,12 @@ public virtual class debugger {
 
                     if (!onlyDateTimeStamp && !onlyTimeSpan) {
                         aLine.textAreaLog__c = log;
-                        lines.add(aLine);
                     }
                     if (onlyTimeSpan) {
                         aLine.textAreaLog__C = 'timeSpan: ' + timespan;
-                        lines.add(aLine);
                     }
                 }
+                lines.add(aLine);
             } else {
                 System.debug('log: ' + log);
             }
@@ -120,6 +98,13 @@ public virtual class debugger {
 
     public virtual void log(){
         log('');
+    }
+
+    public virtual void log(SObject anObject){
+        String objString = JSON.serialize(anObject);
+        log(objString);
+        objString = JSON.serializePretty(anObject);
+        log(objString,true);
     }
 
     private virtual void logTimeSpan(long timeSpan) {
@@ -157,4 +142,38 @@ public virtual class debugger {
     public virtual long timeSpan() {
         return timeSpan(false);
     }
+
+    public virtual List<debugger__c> getLoglines(integer rows) {
+        integer availableRows = LIMITS.getLimitQueryRows() - LIMITS.getQueryRows();
+
+        if (rows > availableRows) {
+            List<debugger__c> lines = new List<debugger__c>();
+            debugger__c line = new debugger__c();
+            line.textAreaLog__c = rows + ' exceeds available rows of ' + availableRows;
+            line.textAreaLongLog__c = rows + ' exceeds available rows of ' + availableRows;
+            lines.add(line);
+            return lines;
+        }
+
+        if (rows == -1) rows = availableRows;
+
+        String fullquery = queryLogString + ' LIMIT ' + string.valueOf(rows);
+        system.debug('fullquery: ' + fullquery);
+        return database.query(fullquery);
+    }
+
+    public virtual List<debugger__c> getLoglines() {
+        return getLogLines(-1);
+    }
+
+    public virtual boolean writeLogs() {
+        try {
+            insert lines;
+            if (throwExpeption) throw new codeCoverageException('code coverage exception');
+            return true;
+        } catch (Exception e) {
+            system.debug('writing files: ' + e.getmessage());
+            return false;
+        }
+    } 
 }
